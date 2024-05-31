@@ -7,16 +7,12 @@
     <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">商品新規登録</a>
 
     <!-- 検索フォームを追加 -->
-    <form action="{{ route('products.search') }}" method="GET">
+    <form action="{{ route('products.index') }}" method="GET">
         <input type="text" id="product_name" name="product_name" placeholder="商品名を入力" value="{{ request()->input('product_name') }}">
         <select id="company_id" name="company_id">
             <option value="">メーカー名</option>
             @foreach($companies as $company)
-            @if(!isset($seenCompanies[$company->company_name]) && in_array($company->company_name, ['Coca-Cola', 'サントリー', 'ペプシ', 'キリン']))
-                    <option value="{{ $company->id }}" {{ request()->input('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
-                    @php $seenCompanies[$company->company_name] = true; @endphp
-
-                @endif
+                <option value="{{ $company->id }}" {{ request()->input('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
             @endforeach
         </select>
         <button type="submit">検索</button>
@@ -39,7 +35,7 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach ($products as $product)
+                @foreach ($products as $product)
                 <tr>
                     <td>{{ $loop->index + 1 }}</td>
                     <td>{{ $product->product_name }}</td>
@@ -58,7 +54,7 @@
                         </form>
                     </td>
                 </tr>
-            @endforeach
+                @endforeach
             </tbody>
         </table>
     </div>

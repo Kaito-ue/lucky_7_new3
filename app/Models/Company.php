@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Company extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'company_name',
+    ];
+
+    // CompanyモデルがProductモデルとリレーション関係を結ぶためのメソッドです
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

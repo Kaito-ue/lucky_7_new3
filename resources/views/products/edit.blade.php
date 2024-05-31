@@ -19,21 +19,23 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="company_id" class="form-label">メーカー</label>
-                                <select class="form-select" id="company_id" name="company_id" required>
-                                    <option value="">選択してください</option>
-                                    @foreach($companies as $company)
-                                    @if(!isset($seenCompanies[$company->company_name]) && in_array($company->company_name, ['Coca-Cola', 'サントリー', 'ペプシ', 'キリン']))   
-                                    <option value="{{ $company->id }}" {{ request()->input('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
-                                    @php $seenCompanies[$company->company_name] = true; @endphp
-                                    @endif 
-                                    @endforeach
-                                </select>
-                            </div>
+            <label for="company_id" class="form-label">メーカー:</label>
+            <select class="form-select" id="company_id" name="company_id" required>
+                <option value="">選択してください</option>
+                @foreach($companies as $company)
+                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
+                @endforeach
+            </select>
+            @error('company_id')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+            @enderror
+        </div>
 
                             <div class="mb-3">
                                 <label for="price" class="form-label">価格</label>
-                                <input type="text" class="form-control" id="price" name="price" value="{{ $product->price }}" required>
+                                <input type="text" class="form-control" id="price" name="price" value="{{ number_format($product->price, 0, '.', ',') }}" required>
                             </div>
 
                             <div class="mb-3">

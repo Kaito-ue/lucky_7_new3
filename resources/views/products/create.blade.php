@@ -16,7 +16,7 @@
             <span class="invalid-feedback" role="alert">
                 <strong>{{ $message }}</strong>
             </span>
-        @enderror
+            @enderror
         </div>
 
         <div class="mb-3">
@@ -24,18 +24,16 @@
             <select class="form-select" id="company_id" name="company_id" required>
                 <option value="">選択してください</option>
                 @foreach($companies as $company)
-                @if(!isset($seenCompanies[$company->company_name]) && in_array($company->company_name, ['Coca-Cola', 'サントリー', 'ペプシ', 'キリン']))
-                <option value="{{ $company->id }}" {{ request()->input('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
-                @php $seenCompanies[$company->company_name] = true; @endphp
-                @endif
+                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
                 @endforeach
             </select>
             @error('company_id')
             <span class="invalid-feedback" role="alert">
                 <strong>{{ $message }}</strong>
             </span>
-        @enderror
+            @enderror
         </div>
+
 
         <div class="mb-3">
             <label for="price" class="form-label">価格:</label>

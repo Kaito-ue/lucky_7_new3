@@ -1,63 +1,84 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::with('company')->paginate(5); // ページネーションを適用して商品情報を取得します
-        $companies = Company::all();
-        return view('products.index', compact('products', 'companies'));
+    public function index(Request $request)
+{
+    $query = Product::with('company')->orderBy('id', 'desc');
+
+    $productName = $request->input('product_name');
+    $companyId = $request->input('company_id');
+
+    if ($productName) {
+        $query->where('product_name', 'like', '%' . $productName . '%');
     }
+
+    if ($companyId) {
+        $query->where('company_id', $companyId);
+    }
+
+    $products = $query->paginate(5);
+    $companies = Company::all();
+
+    return view('products.index', compact('products', 'companies', 'productName', 'companyId'));
+}
+
 
     public function create()
     {
         $companies = Company::all();
-        return view('products.create', compact('companies'));
+        $excludeCompanyIds = Company::whereIn('company_name', ['Coca-Cola', 'サントリーペプシキリン'])->pluck('id')->toArray();
+
+        $filteredCompanies = $companies->reject(function ($company) use ($excludeCompanyIds) {
+            return in_array($company->id, $excludeCompanyIds);
+        });
+
+        return view('products.create', compact('filteredCompanies', 'companies'));
     }
 
     public function store(Request $request)
     {
-        \Log::info('Request data: ', $request->all());
-        $request->validate([
-            'product_name' => 'required',
-            'company_id' => 'required|exists:companies,id',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'comment' => 'nullable|string',
-            'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-        $price = preg_replace('/[^0-9]/', '', $request->input('price'));
+        try {
+            $request->validate([
+                'product_name' => 'required',
+                'company_id' => 'required|exists:companies,id',
+                'price' => 'required|numeric',
+                'stock' => 'required|integer',
+                'comment' => 'nullable|string',
+                'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
 
-        \Log::info('Validation passed');
+            $price = preg_replace('/[^0-9]/', '', $request->input('price'));
 
-        $product = new Product([
-            'product_name' => $request->get('product_name'),
-            'company_id' => $request->get('company_id'),
-            'price' => $price,
-            'stock' => $request->get('stock'),
-            'comment' => $request->get('comment'),
-            'img_path' => $request->file('img_path') ? $request->file('img_path')->store('public/images') : null,
+            $product = new Product([
+                'product_name' => $request->input('product_name'),
+                'company_id' => $request->input('company_id'),
+                'price' => $price,
+                'stock' => $request->input('stock'),
+                'comment' => $request->input('comment'),
+            ]);
 
-        ]);
+            if ($request->hasFile('img_path')) {
+                $filename = $request->file('img_path')->getClientOriginalName();
+                $filePath = $request->file('img_path')->storeAs('public/images', $filename);
+                $product->img_path = 'storage/images/' . $filename;
+            }
 
-        \Log::info('Product data before save: ', $product->toArray());
+            $product->save();
 
-        if ($request->hasFile('img_path')) {
-            $filename = $request->img_path->getClientOriginalName();
-            $filePath = $request->img_path->storeAs('products', $filename, 'public');
-            $product->img_path = '/storage/' . $filePath;
+            return redirect()->route('products.index')->with('success', '商品が登録されました。');
+        } catch (\Exception $e) {
+            // エラーが発生した場合の処理をここに記述します
+            Log::error('商品登録エラー: ' . $e->getMessage());
+            return back()->withInput()->withErrors(['error' => '商品登録中にエラーが発生しました。']);
         }
-
-        $product->save();
-
-        \Log::info('Product saved: ', $product->toArray());
-
-        return redirect()->route('products.index')->with('success', '商品が登録されました。');
     }
 
     public function show(Product $product)
@@ -73,57 +94,71 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $request->validate([
-            'product_name' => 'required',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'img_path' => 'nullable|image|max:4096',
-        ]);
+        try {
+            $request->validate([
+                'product_name' => 'required',
+                'company_id' => 'required|exists:companies,id',
+                'price' => 'required|numeric',
+                'stock' => 'required|integer',
+                'comment' => 'nullable|string',
+                'img_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
 
-        if ($request->hasFile('img_path')) {
-            $filename = $request->img_path->getClientOriginalName();
-            $filePath = $request->img_path->storeAs('products', $filename, 'public');
-            $product->img_path = '/storage/' . $filePath;
+            $price = preg_replace('/[^0-9]/', '', $request->input('price'));
+
+            $product->update([
+                'product_name' => $request->input('product_name'),
+                'company_id' => $request->input('company_id'),
+                'price' => $price,
+                'stock' => $request->input('stock'),
+                'comment' => $request->input('comment'),
+            ]);
+
+            if ($request->hasFile('img_path')) {
+                $filename = $request->file('img_path')->getClientOriginalName();
+                $filePath = $request->file('img_path')->storeAs('public/images', $filename);
+                $product->img_path = 'storage/images/' . $filename;
+                $product->save();
+            }
+
+            return redirect()->route('products.index')->with('success', '商品が更新されました。');
+        } catch (\Exception $e) {
+            // エラーが発生した場合の処理をここに記述します
+            Log::error('商品更新エラー: ' . $e->getMessage());
+            return back()->withInput()->withErrors(['error' => '商品更新中にエラーが発生しました。']);
         }
-
-        $product->update($request->except('img_path'));
-
-        return redirect()->route('products.index')->with('success', 'Product updated successfully');
     }
 
     public function destroy(Product $product)
     {
-        $product->delete();
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully');
+        try {
+            $product->delete();
+            return redirect()->route('products.index')->with('success', '商品が削除されました。');
+        } catch (\Exception $e) {
+            Log::error('商品削除エラー: ' . $e->getMessage());
+            return back()->withInput()->withErrors(['error' => '商品削除中にエラーが発生しました。']);
+        }
     }
 
     public function search(Request $request)
-    {
-        // 検索パラメータの取得
-        $productName = $request->input('product_name');
-        $companyId = $request->input('company_id');
+{
+    $productName = $request->input('product_name');
+    $companyId = $request->input('company_id');
 
-        // クエリビルダの初期化
-        $query = Product::query();
+    $query = Product::query();
 
-        // 商品名で部分一致検索
-        if ($productName) {
-            $query->where('product_name', 'like', '%' . $productName . '%');
-        }
-
-        // メーカーIDで検索
-        if ($companyId) {
-            $query->where('company_id', $companyId);
-        }
-
-        // 検索結果を取得
-        $products = $query->with('company')->paginate(10);
-        $companies = Company::all();
-
-        // ビューに結果とメーカー情報を渡す
-        return view('products.index', compact('products', 'companies'))->with([
-            'product_name' => $productName,  // フォームに現在のクエリを保持
-            'company_id' => $companyId       // フォームに現在の会社IDを保持
-        ]);
+    if ($productName) {
+        $query->where('product_name', 'like', '%' . $productName . '%');
     }
+
+    if ($companyId) {
+        $query->where('company_id', $companyId);
+    }
+
+    $products = $query->with('company')->paginate(10);
+    $companies = Company::all();
+
+    return view('products.index', compact('products', 'companies', 'productName', 'companyId'));
+}
+
 }

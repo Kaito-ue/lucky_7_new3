@@ -1,5 +1,41 @@
 @extends('layouts.app')
 
+@push('styles')
+    <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("スクリプトが読み込まれました");
+
+    function confirmDelete(event) {
+        event.preventDefault(); // フォームのデフォルトの送信をキャンセル
+        console.log("削除ボタンがクリックされました");
+
+        const confirmed = confirm("本当にこの商品を削除しますか？");
+        console.log("削除確認ダイアログが表示されました");
+
+        if (confirmed) {
+            // ユーザーが確認した場合、フォームを送信
+            console.log("ユーザーが確認しました");
+            event.target.submit();
+        } else {
+            // ユーザーがキャンセルした場合、何もしない
+            console.log("ユーザーがキャンセルしました");
+            alert("削除がキャンセルされました。");
+        }
+    }
+
+    // 各削除フォームにイベントリスナーを追加
+    document.querySelectorAll('form.confirm-delete').forEach(function(form) {
+        console.log("イベントリスナーを追加しました", form);
+        form.addEventListener('submit', confirmDelete);
+    });
+});
+</script>
+@endpush
+
 @section('content')
 <div class="container">
     <h1 class="mb-4">商品情報一覧</h1>
@@ -37,7 +73,7 @@
             <tbody>
                 @foreach ($products as $product)
                 <tr>
-                    <td>{{ $loop->index + 1 }}</td>
+                    <td>{{ $product->id }}</td>
                     <td>{{ $product->product_name }}</td>
                     <td>{{ optional($product->company)->company_name }}</td>
                     <td>{{ number_format($product->price, 0, '.', ',') }}</td>
@@ -45,9 +81,8 @@
                     <td>{{ $product->comment }}</td>
                     <td><img src="{{ asset($product->img_path) }}" alt="商品画像" width="100"></td>
                     <td>
-                        <a href="{{ route('products.show', $product) }}" class="btn btn-info btn-sm mx-1">詳細表示</a>
-                        <a href="{{ route('products.edit', $product) }}" class="btn btn-primary btn-sm mx-1">編集</a>
-                        <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirmDelete(event)">
+                        <a href="{{ route('products.show', $product) }}" class="btn btn-info btn-sm mx-1">詳細</a>
+                        <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline confirm-delete">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm mx-1">削除</button>
@@ -60,13 +95,4 @@
     </div>
     {{ $products->links() }}
 </div>
-
-<script>
-function confirmDelete(event) {
-    if (!confirm('本当に削除しますか？')) {
-        event.preventDefault();
-    }
-}
-</script>
-
 @endsection

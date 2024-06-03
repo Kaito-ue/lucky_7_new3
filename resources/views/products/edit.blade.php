@@ -14,32 +14,35 @@
                             @method('PUT')
 
                             <div class="mb-3">
-                                <label for="product_name" class="form-label">商品名</label>
+                                <dt class="col-sm-3">商品情報ID</dt>
+                                <dd class="col-sm-9">{{ $product->id }}</dd>
+
+                                <label for="product_name" class="form-label">商品名 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="product_name" name="product_name" value="{{ $product->product_name }}" required>
                             </div>
 
                             <div class="mb-3">
-            <label for="company_id" class="form-label">メーカー:</label>
-            <select class="form-select" id="company_id" name="company_id" required>
-                <option value="">選択してください</option>
-                @foreach($companies as $company)
-                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
-                @endforeach
-            </select>
-            @error('company_id')
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-            @enderror
-        </div>
+                                <label for="company_id" class="form-label">メーカー名 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="company_id" name="company_id" required>
+                                    <option value="">選択してください</option>
+                                    @foreach($companies as $company)
+                                        <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('company_id')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
 
                             <div class="mb-3">
-                                <label for="price" class="form-label">価格</label>
+                                <label for="price" class="form-label">価格 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="price" name="price" value="{{ number_format($product->price, 0, '.', ',') }}" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="stock" class="form-label">在庫数</label>
+                                <label for="stock" class="form-label">在庫数 <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="stock" name="stock" value="{{ $product->stock }}" required>
                             </div>
 

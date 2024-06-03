@@ -13,8 +13,9 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
-    <!-- Scripts -->
+    <!-- Styles -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @stack('styles') <!-- ここを追加 -->
 </head>
 <body>
     <div id="app">
@@ -76,5 +77,8 @@
             @yield('content')
         </main>
     </div>
+
+    <!-- Scripts -->
+    @stack('scripts') <!-- ここを追加 -->
 </body>
 </html>

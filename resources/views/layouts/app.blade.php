@@ -15,8 +15,11 @@
 
     <!-- Styles -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-    @stack('styles') <!-- ここを追加 -->
+    @stack('styles')
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRpm/5QHlsH5uc6IH2YB6SoG0CrP1SlF5TQ9D1X5s" crossorigin="anonymous"></script>
 </head>
+
 <body>
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
@@ -78,7 +81,6 @@
         </main>
     </div>
 
-    <!-- Scripts -->
-    @stack('scripts') <!-- ここを追加 -->
+    @stack('scripts')
 </body>
 </html>

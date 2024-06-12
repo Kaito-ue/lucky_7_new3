@@ -5,10 +5,12 @@ namespace App\Models;
 // 使うツールを取り込んでいます。
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Kyslik\ColumnSortable\Sortable;
 
 // Productという名前のツール（クラス）を作っています。
 class Product extends Model
 {
+    use Sortable;
     // ダミーレコードを代入する機能を使うことを宣言しています。
     use HasFactory;
 

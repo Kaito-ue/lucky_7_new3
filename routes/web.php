@@ -18,17 +18,14 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::group(['middleware' => 'auth'], function () {
+Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class);
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    Route::get('/home', [HomeController::class, 'index'])->name('home.index');
-    Route::get('/my-dashboard', [HomeController::class, 'home'])->name('dashboard');
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
     Route::post('/manufacturers', [ManufacturerController::class, 'store'])->name('manufacturers.store');
-    Route::get('/search', [ProductController::class, 'search'])->name('products.search');
+    Route::get('/my-dashboard', [HomeController::class, 'home'])->name('dashboard');
+    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
 });
 
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 Route::post('/register', [RegisterController::class, 'register']);
+Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.delete');

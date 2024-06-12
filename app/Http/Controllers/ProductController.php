@@ -10,26 +10,25 @@ use Illuminate\Support\Facades\Log;
 class ProductController extends Controller
 {
     public function index(Request $request)
-{
-    $query = Product::with('company')->orderBy('id', 'desc');
+    {
+        $query = Product::with('company')->orderBy('id', 'desc');
 
-    $productName = $request->input('product_name');
-    $companyId = $request->input('company_id');
+        $productName = $request->input('product_name');
+        $companyId = $request->input('company_id');
 
-    if ($productName) {
-        $query->where('product_name', 'like', '%' . $productName . '%');
+        if ($productName) {
+            $query->where('product_name', 'like', '%' . $productName . '%');
+        }
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        $products = $query->paginate(5);
+        $companies = Company::all();
+
+        return view('products.index', compact('products', 'companies', 'productName', 'companyId'));
     }
-
-    if ($companyId) {
-        $query->where('company_id', $companyId);
-    }
-
-    $products = $query->paginate(5);
-    $companies = Company::all();
-
-    return view('products.index', compact('products', 'companies', 'productName', 'companyId'));
-}
-
 
     public function create()
     {
@@ -75,7 +74,6 @@ class ProductController extends Controller
 
             return redirect()->route('products.index')->with('success', '商品が登録されました。');
         } catch (\Exception $e) {
-            // エラーが発生した場合の処理をここに記述します
             Log::error('商品登録エラー: ' . $e->getMessage());
             return back()->withInput()->withErrors(['error' => '商品登録中にエラーが発生しました。']);
         }
@@ -123,7 +121,6 @@ class ProductController extends Controller
 
             return redirect()->route('products.index')->with('success', '商品が更新されました。');
         } catch (\Exception $e) {
-            // エラーが発生した場合の処理をここに記述します
             Log::error('商品更新エラー: ' . $e->getMessage());
             return back()->withInput()->withErrors(['error' => '商品更新中にエラーが発生しました。']);
         }
@@ -141,24 +138,55 @@ class ProductController extends Controller
     }
 
     public function search(Request $request)
-{
-    $productName = $request->input('product_name');
-    $companyId = $request->input('company_id');
+    {
+        $productName = $request->input('product_name');
+        $companyId = $request->input('company_id');
+        $priceMin = $request->input('price_min');
+        $priceMax = $request->input('price_max');
+        $stockMin = $request->input('stock_min');
+        $stockMax = $request->input('stock_max');
 
-    $query = Product::query();
+        $query = Product::query();
 
-    if ($productName) {
-        $query->where('product_name', 'like', '%' . $productName . '%');
+        if ($productName) {
+            $query->where('product_name', 'like', '%' . $productName . '%');
+        }
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        if ($priceMin) {
+            $query->where('price', '>=', $priceMin);
+        }
+
+        if ($priceMax) {
+            $query->where('price', '<=', $priceMax);
+        }
+
+        if ($stockMin) {
+            $query->where('stock', '>=', $stockMin);
+        }
+
+        if ($stockMax) {
+            $query->where('stock', '<=', $stockMax);
+        }
+
+        $products = $query->with('company')->paginate(10);
+
+        // JSONとして結果を返す
+        return response()->json([
+            'products' => $products->map(function($product) {
+                return [
+                    'id' => $product->id,
+                    'product_name' => $product->product_name,
+                    'company_name' => optional($product->company)->company_name,
+                    'price' => $product->price,
+                    'stock' => $product->stock,
+                    'comment' => $product->comment,
+                    'img_path' => asset($product->img_path)
+                ];
+            }),
+        ]);
     }
-
-    if ($companyId) {
-        $query->where('company_id', $companyId);
-    }
-
-    $products = $query->with('company')->paginate(10);
-    $companies = Company::all();
-
-    return view('products.index', compact('products', 'companies', 'productName', 'companyId'));
-}
-
 }
